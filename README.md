@@ -218,7 +218,7 @@ Output variable (desired target):
 
 ## Screen Recording
 Check out the YouTube videos:
-   * [5 minute version](https://youtu.be/fY2vrtI1OPY)
+   * [5 minute version](https://youtu.be/6gusv3PdYl8)
    * [15 minute version](https://youtu.be/EvA9q2OJkxs)
 
 ## Future Improvements
