@@ -1,0 +1,38 @@
+---------------------------------------------------------------------------
+ErrorResponseException                    Traceback (most recent call last)
+<ipython-input-10-33fbd5a14448> in <module>
+      1 published_pipeline = pipeline_run.publish_pipeline(
+----> 2     name="Bankmarketing Train", description="Training bankmarketing pipeline", version="1.0")
+      3 
+      4 published_pipeline
+
+/anaconda/envs/azureml_py36/lib/python3.6/site-packages/azureml/pipeline/core/run.py in publish_pipeline(self, name, description, version, continue_on_step_failure, **kwargs)
+    223         return self._context.workflow_provider.published_pipeline_provider.create_from_pipeline_run(
+    224             name=name, pipeline_run_id=self._run_id, description=description, version=version,
+--> 225             continue_run_on_step_failure=continue_on_step_failure, enable_email_notification=enable_email_notification)
+    226 
+    227     def find_step_run(self, name):
+
+/anaconda/envs/azureml_py36/lib/python3.6/site-packages/azureml/pipeline/core/_aeva_provider.py in create_from_pipeline_run(self, name, description, version, pipeline_run_id, continue_run_on_step_failure, enable_email_notification)
+   1339         :type enable_email_notification: bool
+   1340         """
+-> 1341         pipeline_run = self._service_caller.get_pipeline_run_async(pipeline_run_id)
+   1342         graph_entity = self._service_caller.get_graph_async(pipeline_run.graph_id)
+   1343         graph_interface = self._service_caller.get_graph_interface_async(pipeline_run.graph_id)
+
+/anaconda/envs/azureml_py36/lib/python3.6/site-packages/azureml/pipeline/core/_restclients/aeva/service_caller.py in get_pipeline_run_async(self, pipeline_run_id)
+    186         result = self._caller.api_v10_subscriptions_by_subscription_id_resource_groups_by_resource_group_name_providers_microsoft_machine_learning_services_workspaces_by_workspace_name_pipeline_runs_by_pipeline_run_id_get(
+    187             subscription_id=self._subscription_id, resource_group_name=self._resource_group_name,
+--> 188             workspace_name=self._workspace_name, custom_headers=self._get_custom_headers(), pipeline_run_id=pipeline_run_id)
+    189 
+    190         return result
+
+/anaconda/envs/azureml_py36/lib/python3.6/site-packages/azureml/pipeline/core/_restclients/aeva/aml_pipelines_api10.py in api_v10_subscriptions_by_subscription_id_resource_groups_by_resource_group_name_providers_microsoft_machine_learning_services_workspaces_by_workspace_name_pipeline_runs_by_pipeline_run_id_get(self, subscription_id, resource_group_name, workspace_name, pipeline_run_id, custom_headers, raw, **operation_config)
+   1782 
+   1783         if response.status_code not in [200]:
+-> 1784             raise ErrorResponseException(self._deserialize, response)
+   1785 
+   1786         deserialized = None
+
+ErrorResponseException: (NotFound) Response status code does not indicate success: 404 (Not Found).
+ErrorType: Microsoft.RelInfra.Storage.Exceptions.RelInfraStorageException, Request: https://metastorefe/metastore/v1/workspace/e1d74ad9-fea8-4882-ad95-21d3e1b79ae9/subscriptions/81cefad3-d2c9-4f77-a466-99a7f541c7bb/resourceGroups/aml-quickstarts-132110/workspaceName/quick-starts-ws-132110/experiments/AutoML_410bac5f-9a0a-4c34-a77e-41df825022a0, Exception: Failed to get item from collection: Experiment, id: AutoML_410bac5f-9a0a-4c34-a77e-41df825022a0, partition e1d74ad9-fea8-4882-ad95-21d3e1b79ae9, error code NotFound

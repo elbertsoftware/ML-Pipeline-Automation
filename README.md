@@ -92,7 +92,15 @@ Output variable (desired target):
    * Verify dataset: Make sure the dataset imported properly with correct column names and data types:
    ![alt text](./screenshot/02_Bank_Dataset_Details.png)
 
-2. Configure Auto ML run:
+   Having the dataset on Azure comes with huge advantages: 
+   
+   * Improving performance: Centralizes it in one place for multiple processes, leverages high networking throughputs, and shares easily among the teams
+
+   * Versioning: Helps managing and tracking dataset used for different training experiments and production deployments
+
+   * Profiling: Allows exploring the dataset from different perspectives:  distributions, missing values, and a vast statistical analysis, etc.
+  
+2. Configure Auto ML run: Every ML project should kick off an Auto ML run to find the baseline before any tweaks, improvements by domain experts, data scientists, and ML engineers:
    
    * Pick dataset: Use the newly registered dataset:
    ![alt text](./screenshot/03_AutoML_Run_Dataset.png)
@@ -102,11 +110,13 @@ Output variable (desired target):
    * Assign compute: A training cluster with 4 CPU based nodes will be used:
    ![alt text](./screenshot/04_AutoML_Run_Configuration.png)
    
-   * Select ML task type: In this case, Classification algorithms will be executed:
+   * Select ML task type: In this case, Classification algorithms will be examined:
    ![alt text](./screenshot/05_AutoML_Run_Task_Type.png)
    
-   * Set metric and other running conditions: Accuracy metric will be used for model optimization. Max concurrent iterations will be 4 since the training cluster has 4 nodes. In order to reduce waiting time and to save resources, try the run for an hour:
+   * Set primary metric and other running conditions: Accuracy metric will be used for model optimization. Max concurrent iterations will be 4 since the training cluster has 4 nodes. In order to reduce waiting time and to save resources, try the run for an hour:
    ![alt text](./screenshot/06_AutoML_Run_Additional.png)
+
+      *Explain best model* option should be enabled in order to gain more insights about the selected best model.
    
    * Run: Start the training run and wait for its completion:
    ![alt text](./screenshot/07_AutoML_Run_Completed.png)
@@ -117,22 +127,34 @@ Output variable (desired target):
    * Review the best model details:
    ![alt text](./screenshot/09_AutoML_Run_Best_Model_Detail.png)
 
-3. Deploy the best model:
+      Beside the accuracy, other useful metrics like AUC, ROC, precision/recall, and model explanation provide great views how the best model selected and what are the most important features. These will help the team better understanding and clues to improve the model down the road:
+      ![alt text](./screenshot/09_AutoML_Run_Best_Model_Metrics.png)
+      ![alt text](./screenshot/09_AutoML_Run_Best_Model_Explanation.png)
+
+3. Deploy the best model: Up to this point, the best model we obtained is just an experiment, it needs to be deployed to production before it can be widely used for predictions:
    
-   * Specify compute type: ACI is used in this prototype:
+   * Specify compute type: ACI is used in this prototype for the sake of simplicity:
    ![alt text](./screenshot/10_Best_Model_Deployment.png)
 
    * Take note of the REST endpoint: After the model is deployed successfully, the endpoint can be used to make predictions (scoring):
    ![alt text](./screenshot/11_Best_Model_Deployed.png)
 
-4. Application Insight - Logging:
+   The model is hosted on either ACI or AKS similarly as any web services, it exposes REST API endpoints for external systems to consume and make predictions.
+
+4. Application Insight: Logging is a crucial part to maintain healthy production environments. It helps monitor performance, detects bottlenecks, troubleshoots real time issues in order to proactively prevents system failures.
+    
    * Enable logging: Azure Application Insight can be connected to the ACI/AKS inference clusters via code and web UI:
    ![alt text](./screenshot/12_Application_Insight_Enabled.png)
 
    * Collect logs: Sample code to retrieve logs from Application Insight:
    ![alt text](./screenshot/13_Application_Insight_Log_Outputs.png)
 
-5. Swagger - API documentation:
+   * View logs in Azure ML Studio: Application Insight comes with rich feature dashboard to view and filter logs:
+   ![alt text](./screenshot/13_Application_Insight_Log_Dashboard.png)
+
+   Azure Application Insight facilitates logging capability and view options of ML production environments the same way as any web applications which DevOps are already familiar with. It is very important in the enterprise settings.
+
+5. Swagger - API documentation: Swagger is the standardized way to document REST API in the industry. It provides universally recognized web interface to show endpoints inputs, outputs, and how to use them.
 
    * Download Swagger documentation: Azure generates API documentation for every deployed model in JSON format. It can be viewed in Swagger:
    ![alt text](./screenshot/14_Swagger_Download.png)
@@ -146,7 +168,9 @@ Output variable (desired target):
    * Examine API: Load the JSON content from the serve.py into Swagger UI for 'score' endpoint details:
    ![alt text](./screenshot/17_Swagger_Documentation.png)
    
-6. Consume endpoints:
+   Having the Swagger documentation of a deployed model API for free is a huge advantage from Azure. It can be distributed among the enterprise for easy integration.
+
+6. Consume endpoints: With model capability available as REST endpoints, making predictions is just simple as sending HTTP POST requests to its endpoint along with predictors as inputs, the predictions are sent back as HTTP POST responses. Any application can leverage the model.
 
    * Postman: Can be used to invoke the 'score' endpoint for making predictions based on different input parameters:
    ![alt text](./screenshot/18_Consume_Endpoint_Postman.png)
@@ -154,7 +178,9 @@ Output variable (desired target):
    * Code: The endpoint can be consumed programmatically by Python code:
    ![alt text](./screenshot/19_Consume_Endpoint_Code.png)
 
-7. Apache Benchmark:
+   REST APIs are widely accepted and provides standard communication in software development. The APIs are safe and protected under Azure umbrella.
+
+7. Apache Benchmark: With model predictions exposed as REST APIs, their performance can be measured by any DevOps preferable benchmark tools. Apache Benchmark 'ab' command is a great CLI based tool for this job.
    
    * Send requests: The 'ab' command sends 10 requests with input values from the data.json to the 'score' endpoint:
    ![alt text](./screenshot/20_Benchmark_Run.png)
@@ -162,11 +188,24 @@ Output variable (desired target):
    * Benchmark results: Since 'ab' run with verbose level 4, the performance statistic is pretty much details:
    ![alt text](./screenshot/21_Benchmark_Results.png)
 
-8. Pipeline:
+   ML/DevOps usually benchmark the ML production system to be proactive in identifying and preventing potential problems.
+
+8. Pipeline: is a great way to encapsulate different complex stages within a ML project starting from data collection/preparation, feature engineering, train/retrain, test, validation to final deployment. Piplelines can be exposed as REST endpoints as well:
    
    * Create new pipeline: The previous Auto ML run can be registered into a pipeline endpoint by Python code in a Jupyter notebook:
    ![alt text](./screenshot/22_Pipeline_Created_and_Running.png)
-   ![alt text](./screenshot/23_Pipeline_Endpoint.png)
+
+      ```
+      run_id = 'AutoML_410bac5f-9a0a-4c34-a77e-41df825022a0'
+      pipeline_run = PipelineRun(experiment, run_id)
+
+      published_pipeline = pipeline_run.publish_pipeline(
+         name="Bankmarketing Train", 
+         description="Training bankmarketing pipeline", 
+         version="1.0")
+      ```
+
+      ![alt text](./screenshot/23_Pipeline_Endpoint.png)
 
    * New REST endpoint: The new pipeline exposes new REST API enables external systems to invoke it as needed:
    ![alt text](./screenshot/24_Pipeline_REST_URL.png)
@@ -175,8 +214,27 @@ Output variable (desired target):
    ![alt text](./screenshot/25_Pipeline_Notebook_Endpoint_Submitted.png)
    ![alt text](./screenshot/26_Pipeline_Running_via_Endpoint.png)
 
+   An ML project can have many pipelines which include different steps depending on the business needs. They make things extremely easy to trigger pipeline runs on demand.
+
 ## Screen Recording
-Check out the [YouTube video](https://youtu.be/EvA9q2OJkxs).
+Check out the YouTube videos:
+   * [5 minute version](https://youtu.be/fY2vrtI1OPY)
+   * [15 minute version](https://youtu.be/EvA9q2OJkxs)
+
+## Future Improvements
+
+1. Search for better best model by:
+   
+   * Extend training time to to 3 or 5 hours
+   * Enable GPU train cluster and deep learning option
+
+2. Try the whole project running on local computer
+   
+3. Deploy the best model to AKS instead of ACI
+   
+4. Implement data injection to accept new datapoints and retrain model on demand
+   
+5. Configure data drift
 
 ## Standout Suggestions
 Check out the project [rubric](https://review.udacity.com/#!/rubrics/2893/view) for more details.
